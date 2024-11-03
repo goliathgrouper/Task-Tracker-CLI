@@ -6,6 +6,7 @@ TASKLIST = "tasklist.json"
 INPROGRESS = "in-progress"
 TODO = "todo"
 DONE = "done"
+COMMANDS = ['list', 'delete', 'update', 'mark-done', 'mark-todo', 'mark-in-progress', 'add']
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
         sys.exit("No arguments provided")
     elif argc > 3:
         sys.exit("Too many arguments provided")
+    if arguments[0] not in COMMANDS:
+        sys.exit("No such command!")
 
     # Add command handler
     if arguments[0] == "add" and argc == 2:
@@ -51,8 +54,14 @@ def main():
             sys.exit("Incorrect usage! Provide an id.")
         mark_task(arguments[1], TODO)
 
+    # Delete command handler
+    if arguments[0] == 'delete':
+        if argc != 2:
+            sys.exit('Incorrect usage! Try: delete <id>')
+        delete_task(arguments[1])
+
     # Wait for input before closing
-    input()
+    #input()
 
 
 # Add todo task
@@ -88,7 +97,8 @@ def list_tasks(spec=""):
                         ["status", task["status"]],
                         ["created at", task["created_at"]],
                         ["updated at", task["updated_at"]],
-                    ], tablefmt="double_outline"
+                    ],
+                    tablefmt="double_outline",
                 )
             )
     elif spec not in ["todo", "in-progress", "done"]:
@@ -104,7 +114,8 @@ def list_tasks(spec=""):
                             ["status", task["status"]],
                             ["created at", task["created_at"]],
                             ["updated at", task["updated_at"]],
-                        ], tablefmt="double_outline"
+                        ],
+                        tablefmt="double_outline",
                     )
                 )
 
@@ -171,10 +182,49 @@ def mark_task(id, spec):
                     ["status", tasktoprint["status"]],
                     ["created at", tasktoprint["created_at"]],
                     ["updated at", tasktoprint["updated_at"]],
-                ], tablefmt="double_outline"
+                ],
+                tablefmt="double_outline",
             )
         )
         print(f"Successfully marked {spec}")
+
+def delete_task(id):
+    try:
+        id = int(id)
+        if id <= 0:
+            sys.exit('Id should be a positive integer!')
+    except ValueError:
+        sys.exit('Id should be a positive integer!')
+    if not check_for_id(id):
+        sys.exit('Didn\'t find task with the provided id! Use list command to see all tasks.')
+    with open(TASKLIST, 'r') as rf:
+        data = json.load(rf)
+    for i in range(len(data)):
+        if data[i]['id'] == id:
+            tasktodelete = data[i]
+            del data[i]
+            
+            break
+    with open(TASKLIST, 'w') as wf:
+        json.dump(data, wf)
+    print("Task:")
+    print(
+        tabulate(
+            [
+                ["id", tasktodelete["id"]],
+                ["description", tasktodelete["description"]],
+                ["status", tasktodelete["status"]],
+                ["created at", tasktodelete["created_at"]],
+                ["updated at", tasktodelete["updated_at"]],
+            ],
+            tablefmt="double_outline",
+        )
+    )
+    print(f"Successfully deleted")
+
+
+
+
 
 
 if __name__ == "__main__":
