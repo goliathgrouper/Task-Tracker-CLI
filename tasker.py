@@ -6,7 +6,15 @@ TASKLIST = "tasklist.json"
 INPROGRESS = "in-progress"
 TODO = "todo"
 DONE = "done"
-COMMANDS = ['list', 'delete', 'update', 'mark-done', 'mark-todo', 'mark-in-progress', 'add']
+COMMANDS = [
+    "list",
+    "delete",
+    "update",
+    "mark-done",
+    "mark-todo",
+    "mark-in-progress",
+    "add",
+]
 
 
 def main():
@@ -55,13 +63,56 @@ def main():
         mark_task(arguments[1], TODO)
 
     # Delete command handler
-    if arguments[0] == 'delete':
+    if arguments[0] == "delete":
         if argc != 2:
-            sys.exit('Incorrect usage! Try: delete <id>')
+            sys.exit("Incorrect usage! Try: delete <id>")
         delete_task(arguments[1])
 
+    if arguments[0] == "update":
+        if argc != 3:
+            sys.exit("Incorrect usage! You need to provide id and description.")
+        update_task(arguments[1], arguments[2])
     # Wait for input before closing
-    #input()
+    # input()
+
+# Update command handler. Updates task description and date
+def update_task(id, description):
+    now = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+    try:
+        id = int(id)
+        if id <= 0:
+            sys.exit("Id should be a positive integer")
+    except ValueError:
+        sys.exit("Id should be a positive integer")
+    if not check_for_id(id):
+        sys.exit(
+            "Didn't find task with the provided id! Use list command to see all tasks."
+        )
+    with open(TASKLIST, "r") as rf:
+        data = json.load(rf)
+    tasktoupdate = {}
+    for i in range(len(data)):
+        if data[i]["id"] == id:
+            data[i]["description"] = description
+            data[i]["updated_at"] = now
+            tasktoupdate = data[i]
+            break
+    with open(TASKLIST, 'w') as wf:
+        json.dump(data, wf)
+    print("Task:")
+    print(
+        tabulate(
+            [
+                ["id", tasktoupdate["id"]],
+                ["description", tasktoupdate["description"]],
+                ["status", tasktoupdate["status"]],
+                ["created at", tasktoupdate["created_at"]],
+                ["updated at", tasktoupdate["updated_at"]],
+            ],
+            tablefmt="double_outline",
+        )
+    )
+    print(f"Successfully updated")
 
 
 # Add todo task
@@ -188,24 +239,27 @@ def mark_task(id, spec):
         )
         print(f"Successfully marked {spec}")
 
+
 def delete_task(id):
     try:
         id = int(id)
         if id <= 0:
-            sys.exit('Id should be a positive integer!')
+            sys.exit("Id should be a positive integer!")
     except ValueError:
-        sys.exit('Id should be a positive integer!')
+        sys.exit("Id should be a positive integer!")
     if not check_for_id(id):
-        sys.exit('Didn\'t find task with the provided id! Use list command to see all tasks.')
-    with open(TASKLIST, 'r') as rf:
+        sys.exit(
+            "Didn't find task with the provided id! Use list command to see all tasks."
+        )
+    with open(TASKLIST, "r") as rf:
         data = json.load(rf)
     for i in range(len(data)):
-        if data[i]['id'] == id:
+        if data[i]["id"] == id:
             tasktodelete = data[i]
             del data[i]
-            
+
             break
-    with open(TASKLIST, 'w') as wf:
+    with open(TASKLIST, "w") as wf:
         json.dump(data, wf)
     print("Task:")
     print(
@@ -221,10 +275,6 @@ def delete_task(id):
         )
     )
     print(f"Successfully deleted")
-
-
-
-
 
 
 if __name__ == "__main__":
