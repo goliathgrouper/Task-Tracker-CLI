@@ -75,6 +75,7 @@ def main():
     # Wait for input before closing
     # input()
 
+
 # Update command handler. Updates task description and date
 def update_task(id, description):
     now = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -97,7 +98,7 @@ def update_task(id, description):
             data[i]["updated_at"] = now
             tasktoupdate = data[i]
             break
-    with open(TASKLIST, 'w') as wf:
+    with open(TASKLIST, "w") as wf:
         json.dump(data, wf)
     print("Task:")
     print(
