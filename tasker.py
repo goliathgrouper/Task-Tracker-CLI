@@ -68,12 +68,12 @@ def main():
             sys.exit("Incorrect usage! Try: delete <id>")
         delete_task(arguments[1])
 
+    # Update command handler
     if arguments[0] == "update":
         if argc != 3:
             sys.exit("Incorrect usage! You need to provide id and description.")
         update_task(arguments[1], arguments[2])
-    # Wait for input before closing
-    # input()
+    
 
 
 # Update command handler. Updates task description and date
@@ -184,7 +184,7 @@ def choose_id():
         if id not in used_ids:
             return id
 
-
+# Creates tasklist with [] inside if didn't exist
 def ensure_tasklist():
     try:
         tasklist = open(TASKLIST, "x")
@@ -214,7 +214,7 @@ def mark_task(id, spec):
     except ValueError:
         sys.exit("Id should be a positive integer")
     if not (check_for_id(id)):
-        sys.exit("No task with this id")
+        sys.exit("Didn't find task with the provided id! Use list command to see all tasks.")
     with open(TASKLIST, "r") as rf:
         data = json.load(rf)
     tasktoprint = {}
