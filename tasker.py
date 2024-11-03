@@ -1,5 +1,6 @@
-#! python -i
+#! ..\venv\Scripts\python.exe
 import sys, json, datetime
+from tabulate import tabulate
 
 TASKLIST = "tasklist.json"
 
@@ -10,20 +11,25 @@ def main():
     arguments = sys.argv[1:]
     argc = len(arguments)
 
+    # Handle general number of arguments
     if argc == 0:
         sys.exit("No arguments provided")
     elif argc > 3:
         sys.exit("Too many arguments provided")
 
     if arguments[0] == "add" and argc == 2:
-        with open(TASKLIST, "a") as tasklist:
-            add_task(choose_id(), arguments[1], "dingdong")
-    elif arguments[0] == "list":
+        add_task(choose_id(), arguments[1])
+        if argc != 2:
+            sys.exit("Incorrect usage!")
+
+    if arguments[0] == "list" and argc == 1:
         list_tasks()
-    
+    # Wait for input before closeing
+    input()
 
 
-def add_task(id: int, description: str, status: str):
+# Add todo task
+def add_task(id: int, description: str):
     with open(TASKLIST, "r") as readfile:
         data = json.load(readfile)
     now = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -31,7 +37,7 @@ def add_task(id: int, description: str, status: str):
         {
             "id": id,
             "description": description,
-            "status": status,
+            "status": "todo",
             "created_at": now,
             "updated_at": now,
         }
@@ -44,17 +50,28 @@ def add_task(id: int, description: str, status: str):
 def list_tasks():
     with open(TASKLIST, "r") as file:
         tasks = json.load(file)
-    print(tasks)
+    for task in tasks:
+        print(
+            tabulate(
+                [
+                    ["id", task["id"]],
+                    ["description", task["description"]],
+                    ["status", task["status"]],
+                    ["created at", task["created_at"]],
+                    ["updated at", task["updated_at"]],
+                ]
+            )
+        )
 
 
+# Choose unused id
 def choose_id():
     with open(TASKLIST, "r") as readfile:
         data = json.load(readfile)
     used_ids = []
     for task in data:
-        used_ids.append(task['id'])
+        used_ids.append(task["id"])
 
-    # Choose unused id
     for id in range(1, 101):
         if id not in used_ids:
             return id
